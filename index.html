@@ -88,10 +88,10 @@
   .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 2px; }
   .link-btn { background: none; border: none; padding: 4px 0; color: #6b7280; font-family: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
 
-  #voiceBox { width: 100%; font-size: 13px; color: #374151; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 6px 10px; }
-  #voiceBox summary { cursor: pointer; color: #047857; font-size: 14px; }
-  #voiceBox label { display: block; margin: 8px 0 2px; color: #6b7280; }
-  #voiceBox select { width: 100%; font-family: inherit; font-size: 13px; padding: 5px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
+  .voice-row { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; border-top: 1px dashed #e5e7eb; margin-top: 6px; padding-top: 10px; font-size: 14px; color: #374151; }
+  .voice-row select { font-family: inherit; font-size: 14px; padding: 5px 10px; border: 1px solid #ddd6fe; border-radius: 10px; background: #fff; color: #374151; }
+  .voice-row label.auto { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .voice-row input[type=checkbox] { width: 17px; height: 17px; }
   #voiceTip { margin: 8px 0 2px; color: #92400e; background: #fffbeb; border-radius: 8px; padding: 6px 8px; display: none; line-height: 1.7; }
 
   #gate { position: fixed; inset: 0; background: rgba(31, 41, 55, .88); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 10; }
@@ -129,21 +129,22 @@
     <div class="tools">
       <button class="link-btn" id="backBtn" style="display:none">⬅ الرجوع للأقسام</button>
       <button class="link-btn" id="resetBtn">مسح المحادثة</button>
-      <button class="link-btn" id="autoBtn">🔈 القراءة التلقائية: متوقفة</button>
-      <details id="voiceBox">
-        <summary>⚙ إعدادات الصوت</summary>
-        <label for="arSel">الصوت العربي</label>
-        <select id="arSel"></select>
-        <label for="enSel">الصوت الإنجليزي</label>
-        <select id="enSel"></select>
-        <label for="rateSel">سرعة القراءة</label>
-        <select id="rateSel">
-          <option value="0.8">بطيئة</option>
-          <option value="0.92" selected>عادية</option>
-          <option value="1.05">أسرع</option>
-        </select>
-        <div id="voiceTip"></div>
-      </details>
+    </div>
+    <div class="voice-row" id="voiceRow">
+      <span>🔊 الصوت:</span>
+      <span>السرعة</span>
+      <select id="rateSel">
+        <option value="0.8">بطيئة</option>
+        <option value="0.92" selected>عادية</option>
+        <option value="1.05">سريعة</option>
+      </select>
+      <span>الصوت</span>
+      <select id="genderSel">
+        <option value="f" selected>أنثى</option>
+        <option value="m">ذكر</option>
+      </select>
+      <label class="auto"><input type="checkbox" id="autoChk"> قراءة تلقائية للإجابات</label>
+      <div id="voiceTip" style="width:100%"></div>
     </div>
   </div>
 </div>
@@ -158,7 +159,7 @@ const TITLE = "دليل Wayground الذكي : ابنِ اختباراتك ال�
 const ASK_NAME = true;
 
 // رابط Google Apps Script لتسجيل الأسماء في الشيت
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw8SqVf2qFlQ19wubCCLse7lVMdfdbem0TuHPSpTnx8JEqV8TcLi4AJdtPf5KbrMesZ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxQW6UWXg0B0U9oVQBuluilCGSo12bmiTLlq3mvxt9JRArvSxrWLLkD5ZsIaipOM43oQ/exec";
 
 const WELCOME = "هنتعلم سوا ازاي تنشئ اختبارات إلكترونية بالذكاء الاصطناعي باستخدام منصة Wayground 📝\nاختر القسم اللي عايز تبدأ منه 👇";
 
@@ -608,9 +609,9 @@ function renderBlock(block, parent) {
    ============================================================ */
 const canSpeak = ("speechSynthesis" in window) && ("SpeechSynthesisUtterance" in window);
 const synth = canSpeak ? window.speechSynthesis : null;
-const AR_KEY = "voiceAr", EN_KEY = "voiceEn", RATE_KEY = "voiceRate";
-const arSel = document.getElementById("arSel");
-const enSel = document.getElementById("enSel");
+const RATE_KEY = "voiceRate", GENDER_KEY = "voiceGender";
+const genderSel = document.getElementById("genderSel");
+const autoChk = document.getElementById("autoChk");
 const rateSel = document.getElementById("rateSel");
 const voiceTip = document.getElementById("voiceTip");
 
@@ -653,31 +654,10 @@ function sortedVoices(lang) {
     .map(function (x) { return x.v; });
 }
 
-function fillSelect(sel, lang, key) {
-  const list = sortedVoices(lang);
-  sel.innerHTML = "";
-  if (!list.length) {
-    const o = document.createElement("option");
-    o.textContent = lang === "ar" ? "لا يوجد صوت عربي على هذا الجهاز" : "لا يوجد صوت إنجليزي على هذا الجهاز";
-    o.value = ""; sel.appendChild(o);
-    return;
-  }
-  const saved = lsGet(key);
-  list.forEach(function (v, i) {
-    const o = document.createElement("option");
-    o.value = v.name;
-    o.textContent = v.name + " (" + v.lang + ")" + (i === 0 ? "  ★ الأفضل" : "");
-    sel.appendChild(o);
-  });
-  if (saved && list.some(function (v) { return v.name === saved; })) sel.value = saved;
-}
-
 function populateVoices() {
   if (!canSpeak) return;
   allVoices = synth.getVoices() || [];
   if (!allVoices.length) return;
-  fillSelect(arSel, "ar", AR_KEY);
-  fillSelect(enSel, "en", EN_KEY);
   const hasAr = sortedVoices("ar").length > 0;
   const arBest = sortedVoices("ar")[0];
   const natural = arBest && /natural|neural|online|google/i.test(arBest.name);
@@ -697,19 +677,26 @@ if (canSpeak) {
   setTimeout(populateVoices, 500);
   setTimeout(populateVoices, 1500);
   const r = lsGet(RATE_KEY); if (r) rateSel.value = r;
+  const g = lsGet(GENDER_KEY); if (g) genderSel.value = g;
 }
-arSel.onchange = function () { lsSet(AR_KEY, arSel.value); };
-enSel.onchange = function () { lsSet(EN_KEY, enSel.value); };
+genderSel.onchange = function () { lsSet(GENDER_KEY, genderSel.value); };
 rateSel.onchange = function () { lsSet(RATE_KEY, rateSel.value); };
 
+const FEMALE_RE = /hoda|salma|zira|aria|jenny|samantha|ava|serena|susan|hazel|sara|laila|zariyah|amira|female|woman|nora|emma|michelle|ana\b|libby|sonia/i;
+const MALE_RE = /shakir|naayf|hamed|guy|david|mark|daniel|ryan|james|george|male\b|man\b|tarik|maged|ahmed|thomas|christopher|eric|roger/i;
+let lastExact = true;
+
+// يرجع صوتًا مناسبًا للغة والنوع (أنثى/ذكر)، وإن لم يوجد يرجع أفضل صوت متاح
 function getVoice(lang) {
-  const sel = lang === "ar" ? arSel : enSel;
+  const want = genderSel.value === "m" ? "m" : "f";
   const list = sortedVoices(lang);
-  if (sel.value) {
-    const m = list.filter(function (v) { return v.name === sel.value; })[0];
-    if (m) return m;
-  }
-  return list[0] || null;
+  const re = want === "m" ? MALE_RE : FEMALE_RE;
+  const other = want === "m" ? FEMALE_RE : MALE_RE;
+  let m = list.filter(function (v) { return re.test(v.name); })[0];
+  if (m) { return { v: m, exact: true }; }
+  // أصوات لا يحدد اسمها النوع (مثل Google): نستخدمها مع تعديل درجة الصوت
+  m = list.filter(function (v) { return !other.test(v.name); })[0] || list[0] || null;
+  return { v: m, exact: false };
 }
 
 /* ---- تجهيز النص للقراءة ---- */
@@ -826,10 +813,10 @@ function speakQueue(queue, btn) {
     if (i >= queue.length) { if (currentBtn === btn) resetListenBtn(); return; }
     const item = queue[i++];
     const u = new SpeechSynthesisUtterance(item.text);
-    const v = getVoice(item.lang);
+    const gv = getVoice(item.lang), v = gv.v;
     if (v) { u.voice = v; u.lang = v.lang; }
     else u.lang = item.lang === "ar" ? "ar-EG" : "en-US";
-    u.rate = rate; u.pitch = 1; u.volume = 1;
+    u.rate = rate; u.pitch = gv.exact ? 1 : (genderSel.value === "m" ? 0.75 : 1.05); u.volume = 1;
     let done = false;
     function fin() { if (done) return; done = true; clearTimeout(guard); setTimeout(next, 60); }
     // حماية: لو لم يُطلق المتصفح حدث الانتهاء
@@ -974,11 +961,9 @@ function startApp() {
 backBtn.onclick = function () { showSections(); };
 document.getElementById("resetBtn").onclick = showWelcome;
 
-const autoBtn = document.getElementById("autoBtn");
-if (!canSpeak) { autoBtn.style.display = "none"; document.getElementById("voiceBox").style.display = "none"; }
-autoBtn.onclick = function () {
-  autoRead = !autoRead;
-  autoBtn.textContent = autoRead ? "🔊 القراءة التلقائية: مفعّلة" : "🔈 القراءة التلقائية: متوقفة";
+if (!canSpeak) { document.getElementById("voiceRow").style.display = "none"; }
+autoChk.onchange = function () {
+  autoRead = autoChk.checked;
   if (!autoRead) stopSpeech();
 };
 startApp();
