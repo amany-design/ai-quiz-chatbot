@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دليل Wayground الذكي : ابنِ اختباراتك الإلكترونية بالذكاء الاصطناعي</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background: #eef1f9;
+    color: #1f2937;
+    display: flex;
+    justify-content: center;
+  }
+  .app {
+    width: 100%;
+    max-width: 720px;
+    height: 100vh;
+    height: 100dvh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 30px rgba(0,0,0,.08);
+  }
+  header {
+    background: linear-gradient(135deg, #0f766e, #2563eb);
+    color: #fff;
+    padding: 14px 18px;
+  }
+  header h1 { margin: 0; font-size: 19px; line-height: 1.5; }
+  header p { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f8f9fd;
+  }
+  .msg {
+    max-width: 94%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.9;
+    font-size: 16px;
+  }
+  .bot  { background: #fff; border: 1px solid #e5e7eb; align-self: flex-start; border-top-right-radius: 4px; }
+  .user { background: #0f766e; color: #fff; align-self: flex-end; border-top-left-radius: 4px; }
+
+  .msg .h { font-weight: bold; color: #0f766e; margin: 6px 0 4px; font-size: 16.5px; }
+  .msg p { margin: 4px 0; }
+  .msg ul, .msg ol { margin: 4px 0; padding-right: 22px; padding-left: 0; }
+  .msg li { margin: 4px 0; }
+  .msg li ul { list-style: circle; margin: 2px 0; }
+  .msg li strong { color: #1d4ed8; }
+  .msg img { max-width: 100%; border-radius: 10px; margin: 8px 0; border: 1px solid #e5e7eb; }
+  .msg a { color: #1d4ed8; font-weight: bold; }
+
+  .video-box { margin: 10px 0 4px; }
+  .video-title { font-size: 14px; color: #6b7280; margin-bottom: 4px; }
+  .video-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; overflow: hidden; }
+  .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .video-open { display: inline-block; margin-top: 4px; font-size: 14px; }
+
+  .listen-btn {
+    display: inline-block; margin: 0 0 8px; padding: 6px 14px;
+    font-size: 14px; font-family: inherit;
+    background: #ecfdf5; color: #047857;
+    border: 1.5px solid #a7f3d0; border-radius: 999px; cursor: pointer;
+  }
+  .listen-btn.on { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+  #panel { border-top: 1px solid #e5e7eb; padding: 10px 14px 12px; background: #fff; max-height: 46vh; overflow-y: auto; }
+  #panelTitle { font-size: 14px; color: #6b7280; margin: 0 0 8px; }
+  .btn {
+    display: block; width: 100%; text-align: right; margin-bottom: 8px;
+    padding: 12px 14px; font-size: 16px; font-family: inherit;
+    background: #f0fdfa; color: #0f766e; border: 1.5px solid #99f6e4;
+    border-radius: 10px; cursor: pointer;
+  }
+  .btn:hover, .btn:active { background: #ccfbf1; }
+  .btn.q { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+  .btn.q:hover, .btn.q:active { background: #dbeafe; }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 2px; }
+  .link-btn { background: none; border: none; padding: 4px 0; color: #6b7280; font-family: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+
+  #voiceBox { width: 100%; font-size: 13px; color: #374151; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 6px 10px; }
+  #voiceBox summary { cursor: pointer; color: #047857; font-size: 14px; }
+  #voiceBox label { display: block; margin: 8px 0 2px; color: #6b7280; }
+  #voiceBox select { width: 100%; font-family: inherit; font-size: 13px; padding: 5px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
+  #voiceTip { margin: 8px 0 2px; color: #92400e; background: #fffbeb; border-radius: 8px; padding: 6px 8px; display: none; line-height: 1.7; }
+
+  #gate { position: fixed; inset: 0; background: rgba(31, 41, 55, .88); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 10; }
+  #gate .box { background: #fff; border-radius: 16px; padding: 26px 22px; width: 100%; max-width: 380px; text-align: center; }
+  #gate h2 { margin: 0 0 6px; font-size: 21px; color: #0f766e; }
+  #gate .sub { margin: 0 0 14px; color: #6b7280; font-size: 14px; line-height: 1.6; }
+  #gate .ask { margin: 0 0 12px; font-size: 18px; font-weight: bold; }
+  #gate input { width: 100%; padding: 12px; font-size: 17px; font-family: inherit; border: 1.5px solid #99f6e4; border-radius: 10px; text-align: center; margin-bottom: 10px; }
+  #gate .err { color: #dc2626; font-size: 14px; min-height: 20px; margin-bottom: 8px; }
+  #gate button { width: 100%; padding: 12px; font-size: 17px; font-family: inherit; background: #0f766e; color: #fff; border: none; border-radius: 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <h2>✨ أهلًا بك</h2>
+    <p class="sub" id="gateTitle"></p>
+    <p class="ask">للبدء : اكتب اسمك ثلاثي</p>
+    <input id="nameInput" type="text" maxlength="80" placeholder="الاسم الثلاثي" autocomplete="name">
+    <div class="err" id="nameErr"></div>
+    <button id="nameBtn">ابدأ</button>
+  </div>
+</div>
+
+<div class="app">
+  <header>
+    <h1 id="title"></h1>
+    <p>اختر القسم، ثم اختر السؤال، وهتظهر لك الإجابة والشرح بالفيديو 🎬 ويمكنك الاستماع لها 🔊</p>
+  </header>
+  <div id="chat"></div>
+  <div id="panel">
+    <p id="panelTitle"></p>
+    <div id="buttons"></div>
+    <div class="tools">
+      <button class="link-btn" id="backBtn" style="display:none">⬅ الرجوع للأقسام</button>
+      <button class="link-btn" id="resetBtn">مسح المحادثة</button>
+      <button class="link-btn" id="autoBtn">🔈 القراءة التلقائية: متوقفة</button>
+      <details id="voiceBox">
+        <summary>⚙ إعدادات الصوت</summary>
+        <label for="arSel">الصوت العربي</label>
+        <select id="arSel"></select>
+        <label for="enSel">الصوت الإنجليزي</label>
+        <select id="enSel"></select>
+        <label for="rateSel">سرعة القراءة</label>
+        <select id="rateSel">
+          <option value="0.8">بطيئة</option>
+          <option value="0.92" selected>عادية</option>
+          <option value="1.05">أسرع</option>
+        </select>
+        <div id="voiceTip"></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   الإعدادات
+   ============================================================ */
+const TITLE = "دليل Wayground الذكي : ابنِ اختباراتك الإلكترونية بالذكاء الاصطناعي";
+
+// طلب الاسم الثلاثي قبل البدء (true = مطلوب)
+const ASK_NAME = true;
+
+// رابط Google Apps Script لتسجيل الأسماء في الشيت
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw8SqVf2qFlQ19wubCCLse7lVMdfdbem0TuHPSpTnx8JEqV8TcLi4AJdtPf5KbrMesZ/exec";
+
+const WELCOME = "هنتعلم سوا ازاي تنشئ اختبارات إلكترونية بالذكاء الاصطناعي باستخدام منصة Wayground 📝\nاختر القسم اللي عايز تبدأ منه 👇";
+
+/* ============================================================
+   المحتوى التعليمي
+   كل إجابة = مجموعة كتل (blocks). أنواع الكتل:
+   { h: "عنوان" }
+   { p: "فقرة" }
+   { list: [ "نقطة" , { t: "نقطة رئيسية", sub: ["نقطة فرعية"] } ], ordered: true/false }
+   { video: "كود أو رابط يوتيوب", title: "عنوان الفيديو" }
+   { img: "images/اسم-الصورة.png" }
+   { link: "https://...", t: "نص الرابط" }
+   وفي السؤال نفسه يمكن إضافة  audio: "audio/اسم.mp3"  لتشغيل تسجيل صوتي بشري بدل صوت المتصفح.
+   ============================================================ */
+const SECTIONS = [
+
+  /* ---------- القسم 1 ---------- */
+  { icon: "💡", title: "مفهوم الاختبارات الإلكترونية ومنصة Wayground", questions: [
+    { q: "ما هي الاختبارات الإلكترونية؟", a: [
+      { h: "الاختبار الإلكتروني" },
+      { list: [
+        { t: "التعريف", sub: [
+          "أداة من أدوات التقويم يتم تصميمها وتطبيقها وإدارتها وتصحيحها إلكترونيًا.",
+          "وسيلة سهلة لقياس التحصيل المعرفي للمتعلم."
+        ]},
+        { t: "الهدف منها", sub: [
+          "تمكين المعلم من إعداد اختبارات بطريقة سهلة وتطبيقها على الطلاب.",
+          "التصحيح الفوري بما يضمن المصداقية والشفافية.",
+          "زيادة التحصيل العلمي وترسيخ المعلومات وتنمية مهارة التعلم الذاتي."
+        ]},
+        { t: "أنواع الأسئلة الشائعة", sub: [
+          "الاختيار من متعدد.",
+          "الصح والخطأ.",
+          "المطابقة.",
+          "ترتيب الخطوات.",
+          "إكمال الفراغ.",
+          "الأسئلة المفتوحة."
+        ]}
+      ]}
+    ]},
+    { q: "ما أهمية الاختبارات الإلكترونية؟", a: [
+      { h: "أهمية الاختبارات الإلكترونية" },
+      { list: [
+        { t: "التصحيح الفوري", sub: ["تغذية راجعة فورية تعزز عملية التعلم."] },
+        { t: "الموضوعية والدقة", sub: ["تقلل التحيز وأخطاء التصحيح اليدوي."] },
+        { t: "توفير الوقت والجهد", sub: [
+          "رصد الدرجات وتحليل النتائج إحصائيًا بدل الساعات الطويلة التي يقضيها المعلم.",
+          "توجيه الجهد نحو التوجيه التربوي الفردي."
+        ]},
+        { t: "المرونة والشمولية", sub: [
+          "بيئة تقييم تناسب أنماط التعلم المختلفة.",
+          "تدعم استقلالية المتعلم وقياس مهارات التفكير العليا."
+        ]},
+        { t: "القابلية للتوسع", sub: ["يمكن تطبيقها على أعداد كبيرة من الطلاب في وقت واحد."] },
+        { t: "التفاعل والتحفيز", sub: ["عرض الأسئلة بالصور والمؤقت يزيد دافعية الطالب."] },
+        { t: "مرونة المكان", sub: ["يمكن أداء الاختبار داخل القاعة أو من المنزل حسب ما يحدده المعلم."] },
+        { t: "حفظ البيانات وإعادة الاستخدام", sub: ["حفظ الأسئلة والنتائج وتعديل الاختبار وإعادة استخدامه في فصول أخرى."] },
+        { t: "ملاءمته لتدريس العلوم", sub: ["إدراج الصور والرسوم لأعضاء الجسم والتجارب والأجهزة المعملية داخل السؤال."] }
+      ]}
+    ]},
+    { q: "ما مميزات إنشاء الاختبارات بالذكاء الاصطناعي؟", a: [
+      { h: "مميزات الذكاء الاصطناعي في بناء الاختبارات" },
+      { list: [
+        { t: "التوليد الآلي المحكوم بالمصادر", sub: [
+          "تحويل المقررات النصية وملفات PDF والدروس المرئية إلى بنوك أسئلة متكاملة.",
+          "ذلك في ثوانٍ معدودة ومتوافقًا مع معايير المناهج."
+        ]},
+        { t: "التمايز وتخصيص مسارات التعلم (Personalization)", sub: [
+          "تكييف مستويات صعوبة الأسئلة تلقائيًا بناءً على استجابات الطلاب ومستوى إتقانهم.",
+          "ما يحقق العدالة التعليمية."
+        ]},
+        { t: "جودة الصياغة اللغوية والتربوية", sub: [
+          "التدقيق اللغوي التلقائي.",
+          "اقتراح أسئلة بديلة تقيس مهارات التحليل والتقييم بدل الاعتماد على التذكر فقط."
+        ]},
+        { t: "تقليل الوقت والجهد", sub: ["المبذولين في صياغة الأسئلة يدويًا."] },
+        { t: "تنويع الأسئلة", sub: ["إنشاء أسئلة متعددة ومتنوعة من محتوى تعليمي واحد، بما يدعم الاختبارات المتكررة والتقييم التكويني."] }
+      ]}
+    ]},
+    { q: "ما هي منصة Wayground؟", a: [
+      { h: "منصة Wayground" },
+      { list: [
+        { t: "التعريف", sub: [
+          "Wayground هو الاسم الجديد لمنصة Quizizz المعروفة.",
+          "تغيّر الاسم في يونيو 2025 لأن المنصة تجاوزت فكرة الاختبارات القصيرة إلى بناء موارد تعليمية متنوعة.",
+          "منصة تعمل على المتصفح تتيح للمعلم إنشاء اختبارات وأنشطة تفاعلية وتشغيلها مع الطلاب.",
+          "الحسابات والاختبارات القديمة وطرق انضمام الطلاب ما زالت تعمل بعد تغيير الاسم."
+        ]},
+        { t: "التوليد بالذكاء الاصطناعي (Create with AI)", sub: [
+          "من موضوع أو أمر نصي.",
+          "من مستند مرفوع.",
+          "من رابط."
+        ]},
+        { t: "أنواع أسئلة متعددة", sub: [
+          "أكثر من 20 نوعًا، منها الاختيار من متعدد والإكمال والمطابقة وإعادة الترتيب والتصنيف وتسمية أجزاء الصورة (Labeling) والأسئلة المفتوحة.",
+          "قد تختلف إتاحة بعض الأنواع من حساب لآخر."
+        ]},
+        { t: "أنشطة أخرى إلى جانب الاختبار", sub: [
+          "بطاقات تعليمية (Flashcards).",
+          "فيديو تفاعلي.",
+          "فقرات قراءة (Passages)."
+        ]},
+        { t: "طرق تشغيل متنوعة", sub: [
+          "جلسة مباشرة بالرمز (Join code).",
+          "تكليف الطلاب بالاختبار ليؤدوه في وقتهم.",
+          "أنماط مثل الفردي والفريق والورقي."
+        ]},
+        { t: "انضمام سهل للطالب", sub: ["من خلال الموقع wayground.com/join بلا عناء."] },
+        { t: "نسخ متدرجة وتفسير للإجابات", sub: [
+          "توليد نسخ أسهل وأصعب من الاختبار نفسه.",
+          "شرح بالذكاء الاصطناعي لسبب الخطأ."
+        ]},
+        { t: "تقارير", sub: ["تبيّن أداء كل طالب وكل سؤال وتساعد المعلم على اكتشاف نقاط الضعف."] },
+        { t: "تكامل مع أدوات أخرى", sub: [
+          "إضافة لمتصفح Chrome تولّد الأسئلة من مستندات Google وملفات PDF وفيديو YouTube.",
+          "ربط مع Google Classroom."
+        ]}
+      ]},
+      { link: "https://wayground.com", t: "فتح موقع Wayground" }
+    ]}
+  ]},
+
+  /* ---------- القسم 2: المرحلة 1 ---------- */
+  { icon: "👤", title: "المرحلة 1: إنشاء حساب والدخول للمنصة", questions: [
+    { q: "كيف أفتح المنصة وأسجّل حساب جديد؟", a: [
+      { h: "إنشاء حساب على Wayground" },
+      { list: [
+        { t: "الخطوة 1: افتح موقع المنصة", sub: [
+          "افتح متصفح Chrome.",
+          "اكتب wayground.com في شريط العنوان ثم اضغط Enter.",
+          "تظهر الصفحة الرئيسية وبها زرا التسجيل (Sign up) وتسجيل الدخول (Log in)."
+        ]},
+        { t: "الخطوة 2: اختر طريقة التسجيل", sub: [
+          "اضغط على Sign up.",
+          "للتسجيل بحساب Gmail الخاص بك اختر Continue with Google.",
+          "اختر بريدك من القائمة التي تظهر لتأكيد الدخول.",
+          "أو اكتب بريدك الإلكتروني وكلمة مرور جديدة."
+        ]},
+        { t: "الخطوة 3: اختر نوع الحساب وأكمل بياناتك", sub: [
+          "اختر معلم (Teacher) ثم اضغط Continue.",
+          "اختر المادة التي تدرّسها (مثل العلوم) والمرحلة.",
+          "بعدها تظهر الصفحة الرئيسية لحسابك."
+        ]}
+      ]},
+      { p: "ملحوظة: قد تختلف أسماء بعض الأزرار أو مواضعها قليلًا، فاعتمد على ما تراه أمامك على الشاشة." },
+      { video: "ChcNYNgjmac", title: "لمشاهدة طريقة انشاء حساب جديد على Wayground اضغط على هذا الرابط" },
+      { video: "oOOgOfHtzYc", title: "لمشاهدة طريقة تحميل تطبيق الموبيل وانشاء حساب جديد اضغط على هذا الرابط" }
+    ]}
+  ]},
+
+  /* ---------- القسم 3: المرحلة 2 ---------- */
+  { icon: "✨", title: "المرحلة 2: إنشاء اختبار جديد وتوليد الأسئلة", questions: [
+    { q: "إنشاء اختبار من خلال كتابة الأمر", a: [
+      { h: "إنشاء اختبار من خلال كتابة الأمر" },
+      { list: [
+        { t: "الخطوة 1: اضغط على Create", sub: [
+          "من القائمة الجانبية أو العلوية اضغط على زر Create (إنشاء).",
+          "تظهر قائمة بما تريد بناءه، مثل Assessment (اختبار) و Lesson (درس)."
+        ]},
+        { t: "الخطوة 2: اختر نوع النشاط", sub: [
+          "اختر Assessment.",
+          "ستجد خيارين رئيسيين لإضافة الأسئلة: كتابتها يدويًا، أو توليدها بالذكاء الاصطناعي.",
+          "نستخدم الخيار الثاني: Create with AI."
+        ]},
+        { t: "الخطوة 3: افتح خيار التوليد من موضوع أو أمر نصي", sub: [
+          "من Create with AI اختر التوليد من موضوع (Topic / Prompt).",
+          "يظهر مربع كتابة تدخل فيه ما تريد من الذكاء الاصطناعي."
+        ]},
+        { t: "الخطوة 4: اكتب أمرًا واضحًا ومحددًا", sub: [
+          "جودة الأسئلة تتوقف على دقة الأمر.",
+          "اكتب فيه: الموضوع، الفئة المستهدفة، عدد الأسئلة، نوع السؤال، عدد البدائل، مستوى الصعوبة، ولغة الأسئلة (عربية أو إنجليزية)."
+        ]},
+        { t: "الخطوة 5: اضبط الخيارات إن ظهرت لك", sub: [
+          "اختر ما يناسب اختبارك: المادة أو المستوى الدراسي أو عدد الأسئلة أو نوعها.",
+          "لا تترك أي خيار للاختيار التلقائي إن كان يسمح بتحديده."
+        ]},
+        { t: "الخطوة 6: راجع الأسئلة المقترحة", sub: [
+          "بعد عدة ثوانٍ تظهر قائمة الأسئلة المقترحة مع بدائلها والإجابة الصحيحة مميزة بعلامة.",
+          "يمكنك اختيار الموضوعات الرئيسية التي تريد إدراجها في الاختبار، وإضافة موضوع جديد.",
+          "ثم اضغط على Create resource."
+        ]}
+      ]},
+      { h: "مثال على أمر كامل" },
+      { p: "قم بعمل اختبار مكون من 20 سؤال: 10 أسئلة اختيار من متعدد لكل سؤال 4 بدائل، و10 صح وخطأ. موضوع الاختبار عن الجدول الدوري موجّه للصف الأول الإعدادي. اجعل الاختبار باللغة الإنجليزية مراعيًا لجميع المستويات المعرفية." },
+      { h: "أمثلة لأوامر جيدة" },
+      { list: [
+        { t: "الجهاز الدوري", sub: ["اكتب 10 أسئلة اختيار من متعدد باللغة العربية عن مكونات الدم ووظائفها لطلاب الفرقة الأولى بكلية التربية تخصص علوم، لكل سؤال أربعة بدائل وإجابة صحيحة واحدة."] },
+        { t: "الخلية الحيوانية", sub: ["أنشئ 12 سؤالًا عن مكونات الخلية الحيوانية: 6 أسئلة اختيار من متعدد، و4 صح وخطأ، وسؤالان مطابقة، مع تفسير قصير لكل إجابة."] },
+        { t: "التمثيل الضوئي", sub: ["أنشئ 8 أسئلة عن التمثيل الضوئي بمستويات متدرجة (تذكر وفهم وتطبيق)، باللغة العربية ومناسبة لطلاب الجامعة."] }
+      ]},
+      { video: "vnLE3bfmlGE", title: "لمشاهدة طريقة انشاء اختبار جديد من خلال كتابة الامر لتوليد الاختبار من خلال واجهه جهاز الكمبيوتر اضغط على هذا الرابط" },
+      { video: "PRbQHIN83uw", title: "لمشاهدة طريقة انشاء اختبار جديد من خلال كتابة الامر لتوليد الاختبار من خلال تطبيق الموبيل اضغط على هذا الرابط" }
+    ]},
+    { q: "إنشاء اختبار من خلال رفع الملف", a: [
+      { h: "إنشاء اختبار من خلال رفع الملف" },
+      { p: "مناسبة عندما تريد أن تكون الأسئلة من محاضرة أو فصل دراسي محدد." },
+      { list: [
+        { t: "الخطوة 1: اضغط على Create", sub: [
+          "من القائمة الجانبية أو العلوية اضغط على زر Create (إنشاء)."
+        ]},
+        { t: "الخطوة 2: اختر نوع النشاط", sub: [
+          "اختر Assessment.",
+          "ثم اختر Create with AI لتوليد الأسئلة بالذكاء الاصطناعي."
+        ]},
+        { t: "الخطوة 3: جهّز ملف المحتوى", sub: [
+          "احفظ المحتوى الذي تريد الأسئلة عنه في ملف بصيغة PDF أو Word أو Google Docs.",
+          "يُفضَّل ألا يزيد عن عدة صفحات ليكون الناتج مركّزًا.",
+          "يجب أن يكون النص قابلًا للتحديد وليس صورة ممسوحة."
+        ]},
+        { t: "الخطوة 4: اختر التوليد من ملف", sub: [
+          "من شاشة Create with AI اختر التوليد من مستند (Upload a document).",
+          "تفتح نافذة ملفات جهازك، اختر الملف واضغط Open.",
+          "ويمكن أيضًا التوليد من رابط مقال أو صفحة (URL) إن كان المحتوى منشورًا على الإنترنت."
+        ]},
+        { t: "الخطوة 5: حدّد عدد الأسئلة ونوعها", sub: [
+          "بعد رفع الملف حدّد عدد الأسئلة ونوعها ولغتها إن ظهرت هذه الخيارات.",
+          "ثم اضغط على Create resource.",
+          "عند ظهور الأسئلة قارن كل سؤال بملف المحتوى لتتأكد أن ما ورد فيها موجود فعلًا في الملف ولم تخترعه المنصة."
+        ]}
+      ]},
+      { video: "-LO80m5Jq9w", title: "لمشاهدة طريقة انشاء اختبار جديد من خلال رفع الملف لتوليد الاختبار من خلال واجهه جهاز الكمبيوتر اضغط على هذا الرابط" },
+      { video: "BrxGxX-w0i4", title: "لمشاهدة طريقة انشاء اختبار جديد من خلال رفع الملف لتوليد الاختبار من خلال تطبيق الموبيل اضغط على هذا الرابط" }
+    ]}
+  ]},
+
+  /* ---------- القسم 4: المرحلة 3 ---------- */
+  { icon: "✏️", title: "المرحلة 3: مراجعة الأسئلة المولدة وإجراء التعديلات عليها", questions: [
+    { q: "لماذا يجب مراجعة الأسئلة؟ وكيف أراجعها؟", a: [
+      { h: "المراجعة العلمية واللغوية" },
+      { p: "الأسئلة المولَّدة بالذكاء الاصطناعي مسودة أولية تحتاج إلى مراجعة علمية ولغوية منك، وهذه أهم مرحلة." },
+      { list: [
+        { t: "الخطوة 1: اقرأ كل سؤال واحكم عليه", sub: [
+          "هل المعلومة العلمية صحيحة؟",
+          "هل الصياغة واضحة ولا تحتمل أكثر من تفسير؟",
+          "هل توجد إجابة صحيحة واحدة فقط؟",
+          "هل البدائل الخاطئة منطقية وليست مضحكة أو واضحة الخطأ؟"
+        ]},
+        { t: "الخطوة 2: عدّل نص السؤال والبدائل", sub: [
+          "اضغط داخل نص السؤال أو أحد بدائله لتكتب فيه مباشرة.",
+          "صحّح الأخطاء اللغوية والعلمية وأعد صياغة العبارات الغامضة.",
+          "تأكد أن النص العربي يظهر من اليمين إلى اليسار دون كلمات مفككة."
+        ]}
+      ]}
+    ]},
+    { q: "كيف أحدد الإجابة الصحيحة وأضيف صورة؟", a: [
+      { h: "الإجابة الصحيحة والوسائط" },
+      { list: [
+        { t: "الخطوة 1: حدّد الإجابة الصحيحة", sub: [
+          "تأكد أن الإجابة المميزة علميًا بعلامة الصح هي الصحيحة فعلًا.",
+          "إن لزم اضغط على علامة الصح بجانب البديل الصحيح لتغييره.",
+          "إذا وجدت أكثر من إجابة مميزة فعدّل السؤال حتى تبقى إجابة واحدة."
+        ]},
+        { t: "الخطوة 2: أضف صورة أو رسمًا توضيحيًا للسؤال", sub: [
+          "من خيار إضافة الوسائط (أيقونة الصورة) اختر رفع صورة من جهازك أو البحث عن صورة، مثل رسم لخلية أو جهاز مخبري.",
+          "تحقق أن الصورة واضحة ودقيقة علميًا."
+        ]}
+      ]}
+    ]},
+    { q: "كيف أغيّر نوع السؤال أو أضيف وأحذف أسئلة؟", a: [
+      { h: "إضافة وحذف وترتيب الأسئلة" },
+      { list: [
+        { t: "الخطوة 1: غيّر نوع السؤال أو أضف سؤالًا جديدًا", sub: [
+          "اضغط على إضافة سؤال (Add question).",
+          "اختر النوع من المتاحة، مثل: الاختيار من متعدد، أو إكمال الفراغ (Fill in the blank)، أو المطابقة (Match)، أو إعادة الترتيب (Reorder).",
+          "اكتب السؤال والإجابات يدويًا، أو اطلب من الذكاء الاصطناعي إعادة صياغة سؤال موجود.",
+          "بعض الأنواع المتقدمة قد لا تظهر في كل الحسابات، فاكتفِ بما يظهر لك."
+        ]},
+        { t: "الخطوة 2: احذف أو أعد ترتيب الأسئلة الضعيفة", sub: [
+          "احذف أي سؤال مكرر أو خارج موضوع الاختبار.",
+          "رتّب الأسئلة من الأسهل إلى الأصعب إن أردت.",
+          "تأكد أن الأسئلة تغطي مستويات مختلفة وليس التذكر فقط."
+        ]}
+      ]},
+      { video: "APaNuoJh5_s", title: "لمشاهدة طريقة اجراء التعديلات على الأسئلة ( كتابة – إضافة صور- إضافة او حذف سؤال- تحديد الإجابة الصحيحة ) باستخدام واجهه جهاز الكمبيوتر اضغط على هذا الرابط:" },
+      { video: "kS6rJjQAgrc", title: "لمشاهدة طريقة اجراء التعديلات على الأسئلة ( كتابة – إضافة صور- إضافة او حذف سؤال- تحديد الإجابة الصحيحة ) باستخدام تطبيق الموبيل اضغط على هذا الرابط:" }
+    ]}
+  ]},
+
+  /* ---------- القسم 5: المرحلة 4 ---------- */
+  { icon: "⚙️", title: "المرحلة 4: ضبط إعدادات الاختبار", questions: [
+    { q: "كيف أضبط بيانات الاختبار والمؤقت والنقاط؟", a: [
+      { h: "إعدادات الاختبار" },
+      { list: [
+        { t: "الخطوة 1: أدخل بيانات الاختبار", sub: [
+          "اكتب عنوانًا واضحًا للاختبار، مثل: الجدول الدوري.",
+          "اختر المادة (العلوم) والمستوى الدراسي."
+        ]},
+        { t: "الخطوة 2: اضبط المؤقت والنقاط", sub: [
+          "حدّد زمن الإجابة عن كل سؤال بحسب نوعه، فسؤال الحساب أو التطبيق يحتاج وقتًا أطول من سؤال التذكر.",
+          "حدّد النقاط التي ينالها الطالب لكل إجابة صحيحة."
+        ]}
+      ]},
+      { video: "qfSdgtosOXs", title: "لمشاهدة طريقة ضبط اعدادت الاختبار باستخدام واجهه جهاز الكمبيوتر اضغط على هذا الرابط:" },
+      { video: "hKKkXUGrAHo", title: "لمشاهدة طريقة ضبط اعدادت الاختبار باستخدام واجهه تطبيق الموبيل اضغط على هذا الرابط:" }
+    ]}
+  ]},
+
+  /* ---------- القسم 6: المرحلة 5 ---------- */
+  { icon: "🚀", title: "المرحلة 5: معاينة الاختبار ونشره ومشاركته مع الطلاب", questions: [
+    { q: "معاينة الاختبار", a: [
+      { h: "معاينة الاختبار" },
+      { list: [
+        { t: "الخطوة 1: اضغط على زر المعاينة", sub: [
+          "اضغط على زر المعاينة (Preview) لتشاهد الاختبار كما يراه الطالب."
+        ]},
+        { t: "الخطوة 2: راجع الاختبار", sub: [
+          "انتقل بين الأسئلة وتحقق من وضوح النص والصور.",
+          "تأكد من مناسبة الوقت المحدد لكل سؤال."
+        ]}
+      ]}
+    ]},
+    { q: "نشر الاختبار", a: [
+      { h: "نشر الاختبار" },
+      { list: [
+        { t: "الخطوة 1: اضغط على نشر", sub: [
+          "اضغط على نشر (Publish) ليصبح الاختبار متاحًا للمشاركة.",
+          "تظهر بعد ذلك خيارات تشغيله مع الطلاب."
+        ]},
+        { t: "الخطوة 2: اختر طريقة تشغيل الاختبار", sub: [
+          "جلسة مباشرة (Live): يؤدي الطلاب الاختبار معًا داخل القاعة برمز دخول تعرضه على الشاشة.",
+          "تكليف (Assign): يؤدي الطلاب الاختبار في أي وقت خلال مدة تحددها، وهو المناسب لاختبار يؤديه الطالب من منزله.",
+          "اختر النمط المناسب لهدفك، ثم حدد موعد البدء والانتهاء إن كان تكليفًا."
+        ]}
+      ]},
+      { video: "KKhwCsdikPs", title: "لمشاهدة طريقة معاينة الاختبار ثم نشره للطالب من خلال واجهه الكمبيوتر اضغط على هذا الرابط:" },
+      { video: "CIXuqFgaELY", title: "لمشاهدة طريقة معاينة الاختبار ثم نشره للطالب من خلال تطبيق الموبيل اضغط على هذا الرابط:" }
+    ]},
+    { q: "الحصول على رابط الدخول للاختبار وانضمام الطلاب للاختبار", a: [
+      { h: "رابط الدخول وانضمام الطلاب" },
+      { list: [
+        { t: "الخطوة 1: احصل على رمز الدخول أو الرابط", sub: [
+          "بعد تشغيل الجلسة أو التكليف يظهر رمز دخول (Join code) ورابط.",
+          "انسخ الرابط بالضغط على Copy link، أو اكتب الرمز للطلاب."
+        ]},
+        { t: "الخطوة 2: انضمام الطلاب للاختبار", sub: [
+          "يفتح الطالب الرابط المرسل إليه.",
+          "أو يدخل إلى wayground.com/join ويكتب الرمز.",
+          "ثم يكتب اسمه ويبدأ الإجابة."
+        ]}
+      ]},
+      { link: "https://wayground.com/join", t: "صفحة انضمام الطلاب (wayground.com/join)" }
+    ]}
+  ]},
+
+  /* ---------- القسم 7: المرحلة 6 ---------- */
+  { icon: "📊", title: "المرحلة 6: متابعة النتائج", questions: [
+    { q: "كيف أطّلع على نتائج الطلاب وأحلّلها؟", a: [
+      { h: "متابعة النتائج" },
+      { list: [
+        { t: "الخطوة 1: افتح تقرير الاختبار", sub: [
+          "من صفحة التقارير (Reports) اختر الاختبار الذي أجريته.",
+          "تظهر نتيجة كل طالب ونسبة الإجابات الصحيحة."
+        ]},
+        { t: "الخطوة 2: حلّل نتائج الأسئلة", sub: [
+          "تصفّح الأسئلة التي أخطأ فيها أكثر الطلاب.",
+          "قد يكون السبب صعوبة مفهوم عندهم.",
+          "وقد يكون السؤال نفسه غامضًا أو به خطأ ويحتاج إلى تعديل."
+        ]}
+      ]}
+    ]}
+  ]}
+
+];
+
+/* ============================================================
+   من هنا لتحت لا تغيّري شيئًا
+   ============================================================ */
+const chat = document.getElementById("chat");
+const buttons = document.getElementById("buttons");
+const panelTitle = document.getElementById("panelTitle");
+const backBtn = document.getElementById("backBtn");
+let studentName = "";
+
+document.getElementById("title").textContent = TITLE;
+document.title = TITLE;
+document.getElementById("gateTitle").textContent = TITLE;
+
+function scrollDown() { chat.scrollTop = chat.scrollHeight; }
+
+function ytId(v) {
+  const m = String(v).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)?([\w-]{11})(?:[?&].*)?$/);
+  return m ? m[1] : v;
+}
+
+function renderList(items, ordered) {
+  const list = document.createElement(ordered ? "ol" : "ul");
+  items.forEach(function (it) {
+    const li = document.createElement("li");
+    if (typeof it === "string") {
+      li.textContent = it;
+    } else {
+      const b = document.createElement("strong");
+      b.textContent = it.t;
+      li.appendChild(b);
+      if (it.sub) li.appendChild(renderList(it.sub, false));
+    }
+    list.appendChild(li);
+  });
+  return list;
+}
+
+function renderBlock(block, parent) {
+  if (block.h) {
+    const d = document.createElement("div"); d.className = "h"; d.textContent = block.h; parent.appendChild(d);
+  }
+  if (block.p) {
+    const p = document.createElement("p"); p.textContent = block.p; parent.appendChild(p);
+  }
+  if (block.list) parent.appendChild(renderList(block.list, block.ordered));
+  if (block.img) {
+    const im = document.createElement("img"); im.src = block.img; im.alt = block.alt || ""; im.loading = "lazy"; parent.appendChild(im);
+  }
+  if (block.link) {
+    const a = document.createElement("a");
+    a.href = block.link; a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.textContent = "🔗 " + (block.t || block.link);
+    const p = document.createElement("p"); p.appendChild(a); parent.appendChild(p);
+  }
+  if (block.video) {
+    const id = ytId(block.video);
+    const box = document.createElement("div"); box.className = "video-box";
+    if (block.title) {
+      const t = document.createElement("div"); t.className = "video-title"; t.textContent = block.title; box.appendChild(t);
+    }
+    const wrap = document.createElement("div"); wrap.className = "video-wrap";
+    const f = document.createElement("iframe");
+    f.src = "https://www.youtube-nocookie.com/embed/" + id;
+    f.title = block.title || "فيديو";
+    f.allowFullscreen = true;
+    f.setAttribute("allow", "accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen");
+    f.setAttribute("loading", "lazy");
+    wrap.appendChild(f); box.appendChild(wrap);
+    const open = document.createElement("a");
+    open.className = "video-open"; open.href = "https://www.youtube.com/watch?v=" + id;
+    open.target = "_blank"; open.rel = "noopener noreferrer";
+    open.textContent = "فتح الفيديو في صفحة جديدة";
+    box.appendChild(open);
+    parent.appendChild(box);
+  }
+}
+
+/* ============================================================
+   القراءة الصوتية (استمع)
+   - النص يُقسَّم إلى مقاطع عربية وإنجليزية، وكل مقطع يُقرأ بصوت لغته
+   - يُفضَّل تلقائيًا أجود الأصوات المتاحة على الجهاز (Natural / Online / Neural / Google)
+   - إن وُجد تسجيل بشري للإجابة (audio) يُشغَّل بدل صوت المتصفح
+   ============================================================ */
+const canSpeak = ("speechSynthesis" in window) && ("SpeechSynthesisUtterance" in window);
+const synth = canSpeak ? window.speechSynthesis : null;
+const AR_KEY = "voiceAr", EN_KEY = "voiceEn", RATE_KEY = "voiceRate";
+const arSel = document.getElementById("arSel");
+const enSel = document.getElementById("enSel");
+const rateSel = document.getElementById("rateSel");
+const voiceTip = document.getElementById("voiceTip");
+
+let allVoices = [];
+let currentBtn = null;
+let currentAudio = null;
+let speakToken = 0;
+let autoRead = false;
+
+function lsGet(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+function voiceScore(v, lang) {
+  const n = v.name || "", l = (v.lang || "").replace("_", "-");
+  let s = 0;
+  if (lang === "ar") {
+    if (!/^ar/i.test(l)) return -1;
+    if (/^ar-EG/i.test(l) || /hoda|salma|shakir|egypt|مصر/i.test(n)) s += 15;
+    if (/^ar-SA/i.test(l)) s += 6;
+  } else {
+    if (!/^en/i.test(l)) return -1;
+    if (/^en-US/i.test(l)) s += 12;
+    else if (/^en-GB/i.test(l)) s += 8;
+    if (/aria|jenny|guy|samantha|ava|serena|daniel|google us english/i.test(n)) s += 8;
+  }
+  if (/natural/i.test(n)) s += 60;
+  if (/neural|online/i.test(n)) s += 40;
+  if (/google/i.test(n)) s += 20;
+  if (/premium|enhanced/i.test(n)) s += 15;
+  if (v.localService === false) s += 5;
+  if (/espeak|compact/i.test(n)) s -= 30;
+  return s;
+}
+
+function sortedVoices(lang) {
+  return allVoices
+    .map(function (v) { return { v: v, s: voiceScore(v, lang) }; })
+    .filter(function (x) { return x.s >= 0; })
+    .sort(function (a, b) { return b.s - a.s; })
+    .map(function (x) { return x.v; });
+}
+
+function fillSelect(sel, lang, key) {
+  const list = sortedVoices(lang);
+  sel.innerHTML = "";
+  if (!list.length) {
+    const o = document.createElement("option");
+    o.textContent = lang === "ar" ? "لا يوجد صوت عربي على هذا الجهاز" : "لا يوجد صوت إنجليزي على هذا الجهاز";
+    o.value = ""; sel.appendChild(o);
+    return;
+  }
+  const saved = lsGet(key);
+  list.forEach(function (v, i) {
+    const o = document.createElement("option");
+    o.value = v.name;
+    o.textContent = v.name + " (" + v.lang + ")" + (i === 0 ? "  ★ الأفضل" : "");
+    sel.appendChild(o);
+  });
+  if (saved && list.some(function (v) { return v.name === saved; })) sel.value = saved;
+}
+
+function populateVoices() {
+  if (!canSpeak) return;
+  allVoices = synth.getVoices() || [];
+  if (!allVoices.length) return;
+  fillSelect(arSel, "ar", AR_KEY);
+  fillSelect(enSel, "en", EN_KEY);
+  const hasAr = sortedVoices("ar").length > 0;
+  const arBest = sortedVoices("ar")[0];
+  const natural = arBest && /natural|neural|online|google/i.test(arBest.name);
+  if (!hasAr) {
+    voiceTip.style.display = "block";
+    voiceTip.textContent = "جهازك ليس به صوت عربي. لسماع القراءة بصوت عربي واضح افتح الموقع من متصفح Microsoft Edge على الكمبيوتر أو Google Chrome على الموبايل، أو أضف صوتًا عربيًا من إعدادات اللغة في جهازك.";
+  } else if (!natural) {
+    voiceTip.style.display = "block";
+    voiceTip.textContent = "للحصول على أقرب صوت لصوت الإنسان افتح الموقع من متصفح Microsoft Edge (به أصوات عربية وإنجليزية طبيعية مثل Hoda وSalma وAria)، أو Google Chrome.";
+  } else {
+    voiceTip.style.display = "none";
+  }
+}
+if (canSpeak) {
+  populateVoices();
+  synth.onvoiceschanged = populateVoices;
+  setTimeout(populateVoices, 500);
+  setTimeout(populateVoices, 1500);
+  const r = lsGet(RATE_KEY); if (r) rateSel.value = r;
+}
+arSel.onchange = function () { lsSet(AR_KEY, arSel.value); };
+enSel.onchange = function () { lsSet(EN_KEY, enSel.value); };
+rateSel.onchange = function () { lsSet(RATE_KEY, rateSel.value); };
+
+function getVoice(lang) {
+  const sel = lang === "ar" ? arSel : enSel;
+  const list = sortedVoices(lang);
+  if (sel.value) {
+    const m = list.filter(function (v) { return v.name === sel.value; })[0];
+    if (m) return m;
+  }
+  return list[0] || null;
+}
+
+/* ---- تجهيز النص للقراءة ---- */
+function addStop(t) { return /[.!؟?:؛]$/.test(t) ? t : t + "."; }
+
+function listToText(items) {
+  const out = [];
+  items.forEach(function (it) {
+    if (typeof it === "string") out.push(addStop(it));
+    else {
+      out.push(addStop(it.t));
+      if (it.sub) out.push(listToText(it.sub));
+    }
+  });
+  return out.join(" ");
+}
+
+function blocksToText(blocks) {
+  const out = [];
+  blocks.forEach(function (b) {
+    if (b.h) out.push(addStop(b.h));
+    if (b.p) out.push(addStop(b.p));
+    if (b.list) out.push(listToText(b.list));
+  });
+  return out.join(" ");
+}
+
+// أسماء ومصطلحات إنجليزية لها نطق خاص
+const EN_FIX = [
+  [/wayground\.com\/join/gi, "way ground dot com slash join"],
+  [/wayground\.com/gi, "way ground dot com"],
+  [/Wayground/gi, "Way ground"],
+  [/Quizizz/gi, "Quiz iz"],
+  [/Gmail/gi, "G mail"],
+  [/PDF/g, "P D F"],
+  [/\bURL\b/g, "U R L"],
+  [/\bAI\b/g, "A I"],
+  [/\bUI\b/g, "U I"],
+  [/\bQ&A\b/g, "Q and A"]
+];
+
+function cleanForSpeech(text) {
+  let t = String(text);
+  t = t.replace(/[ً-ٰٟـ]/g, "");                 // التشكيل والتطويل
+  t = t.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}⬅➡★]/gu, " "); // الإيموجي
+  t = t.replace(/https?:\/\/\S+/g, " ");
+  EN_FIX.forEach(function (p) { t = t.replace(p[0], p[1]); });
+  t = t.replace(/\(([^()]*[A-Za-z][^()]*)\)/g, ", $1, ");           // (English) -> , English,
+  t = t.replace(/[()\[\]{}"«»*_#~|<>]/g, " ");
+  t = t.replace(/\s*[\/\\]\s*/g, " ");
+  t = t.replace(/\s*[-–—]\s+/g, ", ");
+  t = t.replace(/\s+/g, " ").trim();
+  return t;
+}
+
+// تقسيم إلى جمل قصيرة (لتفادي توقف Chrome في الجمل الطويلة)
+function splitSentences(text) {
+  const parts = text.split(/(?<=[.!؟?؛:،,])\s+/);
+  const out = [];
+  parts.forEach(function (p) {
+    p = p.trim();
+    while (p.length > 170) {
+      let cut = p.lastIndexOf(" ", 160);
+      if (cut < 60) cut = 160;
+      out.push(p.slice(0, cut).trim());
+      p = p.slice(cut).trim();
+    }
+    if (p) out.push(p);
+  });
+  return out;
+}
+
+// تقسيم الجملة إلى مقاطع حسب اللغة (عربي / إنجليزي)
+function splitByLang(sentence) {
+  const runs = [];
+  const re = /[A-Za-z][A-Za-z0-9'’.\-]*(?:\s+[A-Za-z][A-Za-z0-9'’.\-]*)*|[^A-Za-z]+/g;
+  let m;
+  while ((m = re.exec(sentence)) !== null) {
+    const s = m[0];
+    const isEn = /^[A-Za-z]/.test(s);
+    const clean = s.replace(/^[\s,.\-]+|[\s,\-]+$/g, "");
+    if (!clean || !/[A-Za-z؀-ۿ0-9]/.test(clean)) continue;
+    runs.push({ lang: isEn ? "en" : "ar", text: isEn ? clean.replace(/\.+$/, "") : clean });
+  }
+  return runs;
+}
+
+function buildQueue(text) {
+  const q = [];
+  splitSentences(cleanForSpeech(text)).forEach(function (sent) {
+    splitByLang(sent).forEach(function (r) { q.push(r); });
+  });
+  return q;
+}
+
+/* ---- التشغيل ---- */
+function resetListenBtn() {
+  if (currentBtn) { currentBtn.classList.remove("on"); currentBtn.textContent = "🔊 استمع"; currentBtn = null; }
+}
+
+function stopSpeech() {
+  speakToken++;
+  if (canSpeak) synth.cancel();
+  if (currentAudio) { try { currentAudio.pause(); } catch (e) {} currentAudio = null; }
+  resetListenBtn();
+}
+
+function speakQueue(queue, btn) {
+  const token = ++speakToken;
+  const rate = parseFloat(rateSel.value) || 0.92;
+  let i = 0;
+  function next() {
+    if (token !== speakToken) return;
+    if (i >= queue.length) { if (currentBtn === btn) resetListenBtn(); return; }
+    const item = queue[i++];
+    const u = new SpeechSynthesisUtterance(item.text);
+    const v = getVoice(item.lang);
+    if (v) { u.voice = v; u.lang = v.lang; }
+    else u.lang = item.lang === "ar" ? "ar-EG" : "en-US";
+    u.rate = rate; u.pitch = 1; u.volume = 1;
+    let done = false;
+    function fin() { if (done) return; done = true; clearTimeout(guard); setTimeout(next, 60); }
+    // حماية: لو لم يُطلق المتصفح حدث الانتهاء
+    const guard = setTimeout(fin, Math.max(4000, item.text.length * 140 / rate));
+    u.onend = fin;
+    u.onerror = function (e) { if (e && (e.error === "canceled" || e.error === "interrupted")) { done = true; clearTimeout(guard); return; } fin(); };
+    synth.speak(u);
+  }
+  synth.cancel();
+  setTimeout(next, 80);
+}
+
+function toggleSpeak(text, btn, audioSrc) {
+  if (currentBtn === btn) { stopSpeech(); return; }
+  stopSpeech();
+  currentBtn = btn;
+  btn.classList.add("on");
+  btn.textContent = "⏹ إيقاف";
+
+  if (audioSrc) {
+    currentAudio = new Audio(audioSrc);
+    currentAudio.onended = function () { if (currentBtn === btn) resetListenBtn(); };
+    currentAudio.onerror = function () {
+      currentAudio = null;
+      if (canSpeak) speakQueue(buildQueue(text), btn); else resetListenBtn();
+    };
+    currentAudio.play().catch(function () {
+      currentAudio = null;
+      if (canSpeak) speakQueue(buildQueue(text), btn); else resetListenBtn();
+    });
+    return;
+  }
+  speakQueue(buildQueue(text), btn);
+}
+
+window.addEventListener("beforeunload", function () { if (canSpeak) synth.cancel(); });
+
+function addMessage(content, who, autoSpeak, audioSrc) {
+  const div = document.createElement("div");
+  div.className = "msg " + who;
+  let speech = "";
+  if (typeof content === "string") {
+    div.textContent = content;
+    div.style.whiteSpace = "pre-wrap";
+    speech = content;
+  } else {
+    content.forEach(function (b) { renderBlock(b, div); });
+    speech = blocksToText(content);
+  }
+  if (who === "bot" && (canSpeak || audioSrc)) {
+    const lb = document.createElement("button");
+    lb.className = "listen-btn";
+    lb.textContent = "🔊 استمع";
+    lb.onclick = function () { toggleSpeak(speech, lb, audioSrc); };
+    div.insertBefore(lb, div.firstChild);
+    if (autoSpeak && autoRead) toggleSpeak(speech, lb, audioSrc);
+  }
+  chat.appendChild(div);
+  scrollDown();
+  return div;
+}
+
+function clearButtons() { buttons.innerHTML = ""; }
+
+function showSections() {
+  clearButtons();
+  panelTitle.textContent = "اختر القسم:";
+  backBtn.style.display = "none";
+  SECTIONS.forEach(function (s) {
+    const b = document.createElement("button");
+    b.className = "btn";
+    b.textContent = s.icon + "  " + s.title;
+    b.onclick = function () {
+      addMessage(s.icon + " " + s.title, "user");
+      setTimeout(function () {
+        addMessage("تمام! اختر السؤال اللي عايز تعرف إجابته 👇", "bot");
+        showQuestions(s);
+      }, 250);
+    };
+    buttons.appendChild(b);
+  });
+  panel_scroll();
+}
+
+function showQuestions(section) {
+  clearButtons();
+  panelTitle.textContent = section.icon + " " + section.title;
+  backBtn.style.display = "inline";
+  section.questions.forEach(function (item) {
+    const b = document.createElement("button");
+    b.className = "btn q";
+    b.textContent = item.q;
+    b.onclick = function () {
+      addMessage(item.q, "user");
+      setTimeout(function () { addMessage(item.a, "bot", true, item.audio); }, 300);
+    };
+    buttons.appendChild(b);
+  });
+  panel_scroll();
+}
+
+function panel_scroll() { document.getElementById("panel").scrollTop = 0; }
+
+function showWelcome() {
+  stopSpeech();
+  chat.innerHTML = "";
+  addMessage((studentName ? "أهلًا يا " + studentName + " 👋\n" : "أهلًا بك 👋\n") + WELCOME, "bot");
+  showSections();
+}
+
+function sendName(name) {
+  if (!SCRIPT_URL) return;
+  try {
+    fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: new URLSearchParams({ name: name }) });
+  } catch (e) {}
+}
+
+function startApp() {
+  if (!ASK_NAME) { showWelcome(); return; }
+  let saved = lsGet("studentName_wayground");
+  if (saved) { studentName = saved; showWelcome(); return; }
+
+  const gate = document.getElementById("gate");
+  const input = document.getElementById("nameInput");
+  const err = document.getElementById("nameErr");
+  gate.style.display = "flex";
+
+  function submit() {
+    const n = input.value.trim().replace(/\s+/g, " ");
+    if (n.split(" ").length < 3) { err.textContent = "من فضلك اكتب الاسم الثلاثي (ثلاث كلمات)"; return; }
+    studentName = n;
+    lsSet("studentName_wayground", n);
+    sendName(n);
+    gate.style.display = "none";
+    showWelcome();
+  }
+  document.getElementById("nameBtn").onclick = submit;
+  input.onkeydown = function (ev) { if (ev.key === "Enter") submit(); };
+  input.focus();
+}
+
+backBtn.onclick = function () { showSections(); };
+document.getElementById("resetBtn").onclick = showWelcome;
+
+const autoBtn = document.getElementById("autoBtn");
+if (!canSpeak) { autoBtn.style.display = "none"; document.getElementById("voiceBox").style.display = "none"; }
+autoBtn.onclick = function () {
+  autoRead = !autoRead;
+  autoBtn.textContent = autoRead ? "🔊 القراءة التلقائية: مفعّلة" : "🔈 القراءة التلقائية: متوقفة";
+  if (!autoRead) stopSpeech();
+};
+startApp();
+</script>
+</body>
+</html>
